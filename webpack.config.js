@@ -5,7 +5,9 @@ module.exports = (env) => {
     return {
         mode: env.mode,
         target: 'electron-renderer',
-        entry: './app/main.js',
+        entry: {
+            app: './app/main.js'
+        },
 
         module: {
             rules: [
