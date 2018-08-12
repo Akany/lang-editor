@@ -1,30 +1,21 @@
 <template>
-    <div>
-        Electron + webpack + vue
-        <div class="file-picker">
-            <input id="file-picker" type="file"
-                @change="filesPicked($event.target)" multiple />
-
-            <div class="pick-area" @click="openPicker()"></div>
-        </div>
-        <div>
-            <label>Add line</label>
-            <input type="text" name="key" placeholder="Key" v-model="key" />
-            <input type="text" name="value" placeholder="Value" v-model="value" />
-            <button @click="addLine()">Add</button>
-        </div>
-        <div>
-            <div>Files:</div>
-            <div v-for="file in files">
-                <label>{{file.name}}</label>
-                <div>{{file.content}}</div>
-            </div>
-        </div>
+    <div class="app">
+        <section>
+            <h1 class="title">Language Editor</h1>
+        </section>
+        <AppFilesPicker
+            class="files-picker"
+            @change="onFilesChange($event)" />
+        <section class="container">
+            <AppAddLine @submit="onAddLine($event)" />
+        </section>
     </div>
 </template>
 
 <script>
-const fs = require('fs');
+import {readFile, writeFile} from './services/file-system';
+import AppFilesPicker from './components/app-files-picker.vue';
+import AppAddLine from './components/app-add-line.vue';
 
 export default {
     data() {
@@ -35,82 +26,48 @@ export default {
         }
     },
 
+    components: {
+        AppFilesPicker,
+        AppAddLine
+    },
+
     methods: {
-        filesPicked(input) {
-            const self = this;
-
-            const files$ = [...input.files]
-                .map((file) => {
-                    return readFile(file.path)
-                        .then((content) => {
-                            return {
-                                name: file.name,
-                                path: file.path,
-                                content: JSON.parse(content)
-                            };
-                        });
-                });
-
-            Promise
-                .all(files$)
-                .then((files) => {
-                    self.files = files;
-                });
+        onFilesChange(files) {
+            this.files = files;
         },
-        addLine() {
-            const self = this;
-
-            self.files = self
-                .files
-                .map((file) => {
-                    return {
-                        ...file,
-                        content: {
-                            ...file.content,
-                            [self.key]: self.value
-                        }
-                    };
-                });
-
-            self
-                .files
+        onAddLine({key, value}) {
+            this.files
                 .forEach((file) => {
-                    return writeFile(
-                            file.path,
-                            JSON.stringify(file.content, null, 4)
-                        );
-                });
-        },
-        openPicker() {
-            this.$el.querySelector('#file-picker').click();
+                    readFile(file.path)
+                        .then((raw) => {
+                            return JSON.parse(raw);
+                        })
+                        .then((content) => {
+                            content[key] = value;
+
+                            return JSON.stringify(content, null, 4);
+                        })
+                        .then((raw) => {
+                            writeFile(file.path, raw);
+                        });
+
+                })
         }
     }
 };
-
-function readFile(path) {
-    return new Promise((resolve) => {
-        fs.readFile(path, 'utf-8', (error, file) => {
-            resolve(file);
-        });
-    })
-}
-
-function writeFile(path, content) {
-    return new Promise((resolve) => {
-        fs.writeFile(path, content, (error) => {
-            resolve();
-        });
-    })
-}
 </script>
 
-<style lang="scss">
-    #file-picker {
-        display: none;
+<style lang="scss" scoped>
+    .app {
+        padding: 25px;
     }
-    
-    .pick-area {
-        height: 100px;
-        background-color: lightgrey;
+
+    .title {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .files-picker {
+        margin-bottom: 15px;
     }
 </style>
