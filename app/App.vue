@@ -7,51 +7,56 @@
             class="files-picker"
             @change="onFilesChange($event)" />
         <section class="container">
-            <AppAddLine @submit="onAddLine($event)" />
+            <AppNavigation
+                class="app-navigation"
+                @change="onTabChange($event)"/>
+
+            <AppLineAdd
+                v-show="activeTab === 'add'"
+                @submit="onAddLine($event)" />
+
+            <AppLineRemove
+                v-show="activeTab === 'remove'"
+                @submit="onLineRemove($event)" />
         </section>
     </div>
 </template>
 
 <script>
-import {readFile, writeFile} from './services/file-system';
+import {lineAdd, lineRemove} from './services/commands';
+
 import AppFilesPicker from './components/app-files-picker.vue';
-import AppAddLine from './components/app-add-line.vue';
+import AppLineAdd from './components/app-line-add.vue';
+import AppNavigation from './components/app-navigation.vue';
+import AppLineRemove from './components/app-line-remove.vue';
 
 export default {
     data() {
         return {
             files: [],
-            key: null,
-            value: null
+            activeTab: 'add'
         }
     },
 
     components: {
         AppFilesPicker,
-        AppAddLine
+        AppLineAdd,
+        AppNavigation,
+        AppLineRemove
     },
 
     methods: {
         onFilesChange(files) {
             this.files = files;
         },
-        onAddLine({key, value}) {
-            this.files
-                .forEach((file) => {
-                    readFile(file.path)
-                        .then((raw) => {
-                            return JSON.parse(raw);
-                        })
-                        .then((content) => {
-                            content[key] = value;
-
-                            return JSON.stringify(content, null, 4);
-                        })
-                        .then((raw) => {
-                            writeFile(file.path, raw);
-                        });
-
-                })
+        onAddLine({key, value, waitUntil}) {
+            waitUntil(lineAdd(this.files, key, value));
+        },
+        onLineRemove({key, waitUntil}) {
+            waitUntil(lineRemove(this.files, key));
+        },
+        onTabChange(tab) {
+            this.activeTab = tab;
         }
     }
 };
@@ -60,6 +65,11 @@ export default {
 <style lang="scss" scoped>
     .app {
         padding: 25px;
+
+        .container {
+            padding: 10px;
+            box-shadow: 0px 0px 2px 0px #ddd;
+        }
     }
 
     .title {
@@ -68,6 +78,10 @@ export default {
     }
 
     .files-picker {
+        margin-bottom: 15px;
+    }
+
+    .app-navigation {
         margin-bottom: 15px;
     }
 </style>

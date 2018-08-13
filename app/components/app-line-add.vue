@@ -1,22 +1,26 @@
 <template>
     <div>
-        <label class="label">Add Lines</label>
         <div class="inputs">
             <input
                 class="input"
                 type="text"
                 name="key"
                 ref="key"
-                placeholder="key" />
+                placeholder="key"
+                v-focus-select />
             <input
                 class="input"
                 type="text"
                 name="value"
                 ref="value"
-                placeholder="value" />
+                placeholder="value"
+                v-focus-select />
         </div>
         <div class="action">
-            <button class="button is-primary" @click="onClick()">
+            <button
+                class="button is-primary"
+                :class="{'is-loading': this.processing}"
+                @click="onClick()">
                 Apply
             </button>
         </div>
@@ -24,19 +28,34 @@
 </template>
 
 <script>
+import FocusSelect from '../directives/focus-select';
+
 export default {
     data() {
         return {
             key: '',
-            value: ''
+            value: '',
+            processing: false
         };
+    },
+
+    directives: {
+        FocusSelect
     },
 
     methods: {
         onClick() {
+            this.processing = true;
+
             this.$emit('submit', {
                 key: this.$refs.key.value,
-                value: this.$refs.value.value
+                value: this.$refs.value.value,
+                waitUntil: (processor$) => {
+                    processor$
+                        .then(() => {
+                            this.processing = false;
+                        });
+                }
             });
         }
     }
