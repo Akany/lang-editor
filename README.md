@@ -2,5 +2,8 @@
 App to solve json languages manipulations
 
 Development
-- npm start
-- npm run dev
+- npm run dev - starts webpack app server
+- npm run start - starts electron
+
+Build
+- npm run dist - builds installer, stored in build folder
