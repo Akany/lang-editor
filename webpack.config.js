@@ -29,19 +29,36 @@ module.exports = (env) => {
                     test: /\.scss$/,
                     use: [
                         'style-loader',
-                        'css-loader',
-                        'sass-loader'
+                        {
+                            loader: 'css-loader',
+                            options: {
+                                sourceMap: true
+                            }
+                        },
+                        {
+                            loader: 'sass-loader',
+                            options: {
+                                sourceMap: true
+                            }
+                        }
                     ]
                 },
                 {
                     test: /\.css$/,
                     use: [
                         'style-loader',
-                        'css-loader'
+                        {
+                            loader: 'css-loader',
+                            options: {
+                                sourceMap: true
+                            }
+                        }
                     ]
                 }
             ]
         },
+
+        devtool: 'eval-source-map',
 
         resolve: {
             alias: {vue: 'vue/dist/vue.js'}

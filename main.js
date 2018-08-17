@@ -1,4 +1,5 @@
 const {app, BrowserWindow} = require('electron');
+const {argv} = require('yargs');
 
 // To avoid being garbage collected
 let mainWindow
@@ -10,8 +11,8 @@ app.on('ready', () => {
         mainWindow = null
     });
 
-    if (process.env.ELECTRON_ENV === 'dev') {
-        mainWindow.loadURL('http://localhost:8080');
+    if (argv.env === 'dev') {
+        mainWindow.loadURL('http://localhost:8081');
         
         return;
     }
