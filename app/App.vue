@@ -24,6 +24,7 @@
 
 <script>
 import {lineAdd, lineRemove} from './services/commands';
+import {notify} from './services/notification';
 
 import AppFilesPicker from './components/app-files-picker.vue';
 import AppLineAdd from './components/app-line-add.vue';
@@ -50,10 +51,20 @@ export default {
             this.files = files;
         },
         onAddLine({key, value, waitUntil}) {
-            waitUntil(lineAdd(this.files, key, value));
+            const command$ = lineAdd(this.files, key, value);
+
+            command$
+                .then(() => notify('Command add completed.'));
+
+            waitUntil(command$);
         },
         onLineRemove({key, waitUntil}) {
-            waitUntil(lineRemove(this.files, key));
+            const command$ = lineRemove(this.files, key);
+
+            command$
+                .then(() => notify('Command remove completed.'));
+
+            waitUntil(command$);
         },
         onTabChange(tab) {
             this.activeTab = tab;
